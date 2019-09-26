@@ -1,0 +1,40 @@
+version: '3.3'
+
+services:
+  swarmpit:
+    image: swarmpit/swarmpit:latest
+    environment:
+      - SWARMPIT_DB=http://couchdb:5984
+      - SWARMPIT_INFLUXDB=http://influxdb:8086
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - 8880:8080
+    networks:
+      - swarmpit
+
+  couchdb:
+    image: couchdb:2.3.0
+    volumes:
+      - ./data/couchdb:/opt/couchdb/data
+
+  influxdb:
+    image: influxdb:1.7
+    volumes:
+      - ./data/influxdb:/var/lib/influxdb
+    networks:
+      - swarmpit
+
+  agent:
+    image: swarmpit/agent:latest
+    environment:
+      - DOCKER_API_VERSION=1.35
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - swarmpit
+
+networks:
+  swarmpit:
+    driver: overlay
+    attachable: true
